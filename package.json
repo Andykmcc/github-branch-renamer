@@ -1,0 +1,21 @@
+{
+  "name": "github-branch-renamer",
+  "version": "0.1.0",
+  "description": "Rename default branch in Github repos.",
+  "main": "bin/index.js",
+  "scripts": {
+    "start": "node ./bin/index.js"
+  },
+  "bin": {
+    "rename-gh-branch": "./bin/index.js"
+  },
+  "author": "Andy McCoy",
+  "license": "WTFPL",
+  "dependencies": {
+    "execa": "^4.0.3",
+    "got": "^11.5.1",
+    "inquirer": "^7.3.3",
+    "p-queue": "^6.6.0",
+    "valid-url": "^1.0.9"
+  }
+}
