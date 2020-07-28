@@ -2,22 +2,24 @@
 "use strict";
 
 const inquirer = require("inquirer");
-const changeRepoDefaultBranch = require('../lib');
 const { isHttpsUri } = require('valid-url');
 const {default: PQueue} = require('p-queue');
+const { updateRepo, updateGithub } = require('../lib');
+const { setupGitEnv } = require('../lib/gitClient');
 
 const queue = new PQueue({concurrency: 4});
 
 async function main() {
-  const {urlStrings, undesiredDefault, desiredDefault, githubToken} = await inquirer.prompt([
+  const {urls, undesiredDefault, desiredDefault, githubToken} = await inquirer.prompt([
     {
-      name: 'urlStrings',
+      name: 'urls',
       message: 'Comma seprated list of HTTPS git urls (e.g. https://github.com/mapbox/hey.git)?',
-      validate: (urls) => {
-        const allValid = urls.split(',').map(s => s.trim()).filter(s => !!s).some(uri => {
-          return isHttpsUri(uri) === undefined ? false : true;
-        });
+      validate: urls => {
+        const allValid = urls.some(url => isHttpsUri(url) === undefined ? false : true);
         return allValid ? true : 'invalid HTTPS URL';
+      },
+      filter: urlStrings => {
+        return [...new Set(urlStrings.split(',').map(s => s.trim()).filter(s => !!s))];
       }
     },
     {
@@ -38,22 +40,27 @@ async function main() {
     },
   ]);
 
-  try {
-    const repoUrls = urlStrings.split(',').map(s => s.trim()).filter(s => !!s);
+  const tearDownGitEnvFn = await setupGitEnv();
 
-    const results = await Promise.allSettled(repoUrls.map(repoUrl => {
-      return queue.add(() => changeRepoDefaultBranch(repoUrl, undesiredDefault, desiredDefault, githubToken));
+  try {
+    const results = await Promise.allSettled(urls.map(repoUrl => {
+      return queue.add(async () => {
+        await updateRepo(repoUrl, undesiredDefault, desiredDefault);
+        await updateGithub(repoUrl, undesiredDefault, desiredDefault, githubToken);
+      });
     }));
 
     results.forEach((result, index) => {
       if (result.status === "fulfilled") {
-        console.log(`Success: ${repoUrls[index]}.`);
+        console.log(`Success: ${urls[index]}.`);
       } else {
-        console.error(`Failure: ${repoUrls[index]}. ${result.reason}`);
+        console.error(`Failure: ${urls[index]}. ${result.reason}`);
       }
     });
   } catch (err) {
     console.error(err);
+  } finally {
+    await tearDownGitEnvFn();
   }
 }
 

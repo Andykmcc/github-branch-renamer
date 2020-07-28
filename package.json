@@ -4,7 +4,10 @@
   "description": "Rename default branch in Github repos.",
   "main": "bin/index.js",
   "scripts": {
-    "start": "node ./bin/index.js"
+    "start": "node ./bin/index.js",
+    "start.debug": "node --inspect-brk ./bin/index.js",
+    "test": "jest",
+    "test.watch": "jest --watchAll"
   },
   "bin": {
     "rename-gh-branch": "./bin/index.js"
@@ -17,5 +20,9 @@
     "inquirer": "^7.3.3",
     "p-queue": "^6.6.0",
     "valid-url": "^1.0.9"
+  },
+  "devDependencies": {
+    "jest": "^26.1.0",
+    "jest-circus": "^26.1.0"
   }
 }
