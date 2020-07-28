@@ -13,7 +13,7 @@ async function main() {
   const {urls, undesiredDefault, desiredDefault, githubToken} = await inquirer.prompt([
     {
       name: 'urls',
-      message: 'Comma seprated list of HTTPS git urls (e.g. https://github.com/mapbox/hey.git)?',
+      message: 'Comma seprated list of HTTPS git urls (e.g. https://github.com/Andykmcc/github-branch-renamer.git)?',
       validate: urls => {
         const allValid = urls.some(url => isHttpsUri(url) === undefined ? false : true);
         return allValid ? true : 'invalid HTTPS URL';
